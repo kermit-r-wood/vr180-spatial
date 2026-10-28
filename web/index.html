@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VR180 · 取景工作台</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a class="brand" href="./">◉ <strong>VR180</strong><span>取景工作台</span></a><div class="header-right"><span class="local-dot"></span> 本地处理 <button id="open" class="quiet">打开照片 ↗</button><input id="file" type="file" accept="image/jpeg,image/png" hidden></div></header>
+<main>
+<aside class="controls">
+<div class="eyebrow">FRAME YOUR MOMENT</div><h1>选一个新的视角。</h1><p class="intro">拖动画面，寻找近景与远景的层次。</p>
+<section><div class="section-title">视角 <button id="reset" class="text-button">重置</button></div>
+<label for="yaw">左右方向 <output id="yawValue">0°</output></label><input id="yaw" type="range" min="-85" max="85" step="0.5" value="0"><div class="range-captions"><span>向左</span><span>向右</span></div>
+<label for="pitch">俯仰角度 <output id="pitchValue">0°</output></label><input id="pitch" type="range" min="-80" max="80" step="0.5" value="0"><div class="range-captions"><span>向上</span><span>向下</span></div>
+<label for="fov">水平视场 <output id="fovValue">75°</output></label><input id="fov" type="range" min="30" max="88" step="0.5" value="75"><div class="range-captions"><span>特写</span><span>广角</span></div>
+</section>
+<section><div class="section-title">画幅</div><div class="segmented" id="aspects"><button data-aspect="1.3333333333333333" class="active">4:3</button><button data-aspect="1.7777777777777777">16:9</button><button data-aspect="1">1:1</button></div><label class="check"><input id="grid" type="checkbox" checked> 显示三分构图线</label></section>
+<section class="depth-controls"><label class="check"><input id="depthToggle" type="checkbox"> 深度伪色 · 左眼</label><div id="depthLegend" hidden><div class="depth-gradient"></div><div class="range-captions"><span>远 · 蓝</span><span>近 · 红</span></div></div><p id="depthStatus" class="small">根据双眼视差估计相对远近；本地 Python 服务可用时启用。</p><p class="muted">辅助取景，不代表精确距离。PNG 导出保留原始色彩。</p></section>
+<section><div class="section-title">在原图中定位 <span class="muted">点击跳转</span></div><canvas id="map" width="520" height="260" aria-label="VR180 原图定位图"></canvas><div class="map-caption">左眼 · 180° × 180°</div></section>
+<div class="tip"><span>↔</span><p>让前景和背景同时入画，通常比只拍一面墙更容易感受到立体层次。</p></div>
+</aside>
+<div class="workspace">
+<div class="toolbar"><div><strong id="filename">请选择 VR180 照片</strong><span id="sourceInfo" class="muted"></span></div><div class="segmented" id="modes"><button data-mode="left" class="active">左眼</button><button data-mode="right">右眼</button><button data-mode="sbs">双眼并排</button></div></div>
+<div id="stage" tabindex="0" aria-label="拖动调整取景，方向键微调，滚轮缩放">
+<div id="viewport"><canvas id="view"></canvas><div id="gridLines"><i></i><i></i><i></i><i></i></div><div class="frame-label">LIVE VIEW <span id="eyeLabel">LEFT EYE</span></div><div id="crosshair">+</div></div>
+<div id="loading">正在读取原图…</div><div class="interaction-hint">拖动取景 <span>·</span> 滚轮调整视场 <span>·</span> 方向键微调</div>
+</div>
+<div class="statusbar"><span id="viewStatus">正前方</span><span id="boundaryStatus">视野位于有效区域</span><span>透视预览 · 非立体显示</span></div>
+<div class="presets"><div class="section-title">快速取景 <span class="muted">从这里开始探索</span></div><div class="preset-list"><button data-yaw="0" data-pitch="0" data-fov="75"><b>01</b><span>正前方<small>原始中心视角</small></span><em>↗</em></button><button data-yaw="0" data-pitch="30" data-fov="88"><b>02</b><span>下方近景<small>地面与近处物体</small></span><em>↗</em></button><button data-yaw="35" data-pitch="15" data-fov="70"><b>03</b><span>向右探索<small>寻找新的主体</small></span><em>↗</em></button></div></div>
+</div>
+<aside class="export-panel"><div class="eyebrow">YOUR FRAME</div><h2>保存这个取景</h2><div class="stat"><span>方向</span><strong id="summaryDirection">0° / 0°</strong></div><div class="stat"><span>单眼输出</span><strong id="summarySize">2400 × 1800</strong></div><label for="resolution">输出宽度 / 每眼</label><select id="resolution"><option value="1600">1600 px · 快速预览</option><option value="2400" selected>2400 px · 标准</option><option value="3200">3200 px · 高分辨率</option></select>
+<button id="saveFrame" class="primary" disabled>下载双眼取景图 <span>↓</span></button><button id="saveDepth" class="secondary" disabled>下载深度伪色图</button><button id="saveConfig" class="secondary" disabled>保存取景参数</button><p class="small">PNG 包含原始左右眼重投影画面，可用于确认构图。下载内容不含辅助线。</p>
+<div class="divider"></div><h3>继续转换为空间照片</h3><label for="baseline">相机基线 / mm</label><input id="baseline" type="number" min="0.1" max="9999" step="0.1" value=""><p class="small">请填写相机实际基线；Canon RF 5.2mm 双鱼眼为 60 mm。</p><button id="exportHeic" class="primary" disabled>直接导出空间照片 HEIC ↓</button><div id="exportStatus" role="status" class="small"></div><div id="compatibility" class="compatibility">正在读取…</div><button id="copyCommand" class="secondary" disabled>复制 Windows 转换命令</button><p class="small">后续几何校正可能裁去边缘，最终构图会略有变化。</p><div id="toast" role="status" aria-live="polite"></div>
+</aside>
+</main><footer>VR180 FRAME STUDIO <span>图片不会上传至 GitHub；在线版支持取景与 PNG 导出。</span></footer>
+<script src="app.js"></script></body></html>
